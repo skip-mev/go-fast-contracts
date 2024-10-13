@@ -2,13 +2,15 @@ name: Build / Test On PR
 
 on:
   pull_request:
+    paths:
+      - "cosmwasm/**"
   push:
     branches:
       - main
 
 jobs:
   check:
-    name: Check Cosmwasm Contracts
+    name: Check
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,7 +33,7 @@ jobs:
           RUST_BACKTRACE: 1
 
   test:
-    name: Test Cosmwasm Contracts
+    name: Test
     runs-on: ubuntu-latest
     defaults:
       run:
