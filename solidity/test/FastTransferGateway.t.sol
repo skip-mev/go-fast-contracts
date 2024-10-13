@@ -56,11 +56,12 @@ contract FastTransferGatewayTest is Test {
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(
             address(gatewayImpl),
             abi.encodeWithSignature(
-                "initialize(uint32,address,address,address,address)",
+                "initialize(uint32,address,address,address,address,address)",
                 1,
                 address(this),
                 address(usdc),
                 mailbox,
+                0x3d0BE14dFbB1Eb736303260c1724B6ea270c8Dc4,
                 address(permit2)
             )
         );
