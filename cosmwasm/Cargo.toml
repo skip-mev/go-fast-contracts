@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members  = [
+  "contracts/fast-transfer-gateway",
+  "contracts/cw7683",
+  "packages/*",
+]
+
+[profile.release]
+codegen-units    = 1
+debug            = false
+debug-assertions = false
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+rpath            = false
+
+[workspace.package]
+version       = "0.0.1"
+edition       = "2021"
+
+[workspace.dependencies]
+hyperlane                            = { path = "packages/hyperlane" }
+go-fast                              = { path = "packages/gofast" }
+
+cosmwasm-schema                       = "1.1.0"
+cw2                                   = "1.1.0"
+cosmwasm-std                          = "1.5.2"
+thiserror                             = "1.0.43"
+cw-ownable                            = "0.5.1"
+cw-storage-plus                       = "1.1.0"
+serde                                 = "1.0.171"
+sha3                                  = "0.10.8"
+bech32                                = "0.11.0"

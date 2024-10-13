@@ -1,0 +1,31 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  check:
+    silent: true
+    cmds:
+      - cargo check --target wasm32-unknown-unknown --lib
+      
+  clippy:
+    silent: true
+    cmds:
+      - cargo +nightly clippy --tests
+  fmt:
+    silent: true
+    cmds:
+      - cargo +nightly fmt
+  test:
+    silent: true
+    cmds:
+      - cargo test
+  optimize:
+    silent: true
+    cmds:
+      - ./scripts/optimize.sh
+  schema:
+    silent: true
+    cmds:
+      - cargo run --bin schema
+
