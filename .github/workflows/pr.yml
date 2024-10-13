@@ -1,0 +1,107 @@
+name: Build / Test On PR
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Check Cosmwasm Contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cosmwasm
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Check for errors
+        # use wasm32 target so that if we have included wasm-incompatible
+        # dependencies, it will result in CI failure
+        run: cargo check --locked --target wasm32-unknown-unknown --lib
+        env:
+          RUST_BACKTRACE: 1
+
+  test:
+    name: Test Cosmwasm Contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cosmwasm
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Run tests
+        run: cargo test --lib --locked --tests
+        env:
+          RUST_BACKTRACE: 1
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Run clippy
+        # use nightly toolchain so that we get all the latest linter features
+        run: cargo clippy --tests -- -D warnings
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      - name: Run format
+        # use nightly toolchain so that we get all the latest formatting features
+        run: cargo fmt --check
+
+  # schema:
+  #   name: Schema
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v3
+
+  #     - name: Install toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         toolchain: stable
+
+  #     - name: Run schema diff check
+  #       # use nightly toolchain so that we get all the latest formatting features
+  #       run: |
+  #         cargo run --package skip-go-entry-point --bin schema
+  #         if [[ `git status --porcelain` ]]; then
+  #           echo "Schema is different, please run make schema"
+  #           exit 1
+  #         fi
