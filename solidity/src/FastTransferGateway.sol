@@ -76,6 +76,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
     IPermit2 public PERMIT2;
     address public token;
     address public mailbox;
+    address public interchainSecurityModule;
 
     // TODO: make this immutable after discussing with the team
     uint32 public localDomain;
@@ -93,14 +94,19 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         _disableInitializers();
     }
 
-    function initialize(uint32 _localDomain, address _owner, address _token, address _mailbox, address _permit2)
-        external
-        initializer
-    {
+    function initialize(
+        uint32 _localDomain,
+        address _owner,
+        address _token,
+        address _mailbox,
+        address _interchainSecurityModule,
+        address _permit2
+    ) external initializer {
         __Ownable_init(_owner);
 
         token = _token;
         mailbox = _mailbox;
+        interchainSecurityModule = _interchainSecurityModule;
         localDomain = _localDomain;
         PERMIT2 = IPermit2(_permit2);
         nonce = 1;
@@ -301,6 +307,18 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         bytes memory hyperlaneMessage = abi.encodePacked(uint8(Command.REFUND_ORDERS), orderIDs);
 
         IMailbox(mailbox).dispatch{value: msg.value}(sourceDomain, remoteContract, hyperlaneMessage);
+    }
+
+    /// @dev Updates the Hyperlane mailbox address
+    /// @param _mailbox The new mailbox address
+    function setMailbox(address _mailbox) public onlyOwner {
+        mailbox = _mailbox;
+    }
+
+    /// @dev Updates the interchain security module address
+    /// @param _interchainSecurityModule The new interchain security module address
+    function setInterchainSecurityModule(address _interchainSecurityModule) public onlyOwner {
+        interchainSecurityModule = _interchainSecurityModule;
     }
 
     function quoteInitiateSettlement(uint32 sourceDomain, bytes32 repaymentAddress, bytes memory orderIDs)
