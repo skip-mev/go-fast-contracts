@@ -2,9 +2,9 @@ use common::default_instantiate;
 use cosmwasm_std::{
     testing::mock_info, to_json_binary, HexBinary, ReplyOn, SubMsg, Uint128, WasmMsg,
 };
-use go_fast::{gateway::ExecuteMsg, FastTransferOrder};
+use go_fast::{gateway::ExecuteMsg, helpers::keccak256_hash, FastTransferOrder};
 use go_fast_transfer_cw::{
-    helpers::{bech32_decode, left_pad_bytes},
+    helpers::{bech32_decode, bech32_encode, left_pad_bytes},
     state::{self},
 };
 use hyperlane::mailbox::{DispatchMsg, ExecuteMsg as MailboxExecuteMsg};
@@ -69,7 +69,12 @@ fn test_initiate_timeout() {
         SubMsg {
             id: 0,
             msg: WasmMsg::Execute {
-                contract_addr: "mailbox_contract_address".into(),
+                contract_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 msg: to_json_binary(&MailboxExecuteMsg::Dispatch(DispatchMsg {
                     dest_domain: 2,
                     recipient_addr: HexBinary::from_hex(

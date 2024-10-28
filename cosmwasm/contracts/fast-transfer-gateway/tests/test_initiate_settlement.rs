@@ -1,8 +1,8 @@
 use common::default_instantiate;
 use cosmwasm_std::{testing::mock_info, to_json_binary, Addr, HexBinary, ReplyOn, SubMsg, WasmMsg};
-use go_fast::gateway::ExecuteMsg;
+use go_fast::{gateway::ExecuteMsg, helpers::keccak256_hash};
 use go_fast_transfer_cw::{
-    helpers::{bech32_decode, left_pad_bytes},
+    helpers::{bech32_decode, bech32_encode, left_pad_bytes},
     state::{self, REMOTE_DOMAINS},
 };
 use hyperlane::mailbox::{DispatchMsg, ExecuteMsg as MailboxExecuteMsg};
@@ -45,7 +45,12 @@ fn test_initiate_settlement() {
         SubMsg {
             id: 0,
             msg: WasmMsg::Execute {
-                contract_addr: "mailbox_contract_address".into(),
+                contract_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 msg: to_json_binary(&MailboxExecuteMsg::Dispatch(DispatchMsg {
                     dest_domain: 2,
                     recipient_addr: HexBinary::from_hex(
@@ -117,7 +122,12 @@ fn test_initiate_settlement_multiple_orders() {
         SubMsg {
             id: 0,
             msg: WasmMsg::Execute {
-                contract_addr: "mailbox_contract_address".into(),
+                contract_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 msg: to_json_binary(&MailboxExecuteMsg::Dispatch(DispatchMsg {
                     dest_domain: 2,
                     recipient_addr: HexBinary::from_hex(
