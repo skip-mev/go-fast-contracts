@@ -10,6 +10,8 @@ import {FastTransferGateway, FastTransferOrder, OrderFill} from "../src/FastTran
 import {TypeCasts} from "../src/libraries/TypeCasts.sol";
 import {OrderEncoder} from "../src/libraries/OrderEncoder.sol";
 import {IPermit2} from "../src/interfaces/IPermit2.sol";
+import {IMailbox} from "../src/interfaces/hyperlane/IMailbox.sol";
+import {GoFastCaller} from "../src/GoFastMulticall.sol";
 
 interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
@@ -41,6 +43,7 @@ contract FastTransferGatewayTest is Test {
     address user;
     address solver;
     address mailbox;
+    address goFastCaller;
 
     function setUp() public {
         arbitrumFork = vm.createFork(vm.envString("RPC_URL"));
@@ -52,17 +55,20 @@ contract FastTransferGatewayTest is Test {
         solver = address(2);
         mailbox = address(0x979Ca5202784112f4738403dBec5D0F3B9daabB9);
 
+        GoFastCaller _goFastCaller = new GoFastCaller();
+        goFastCaller = address(_goFastCaller);
         FastTransferGateway gatewayImpl = new FastTransferGateway();
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(
             address(gatewayImpl),
             abi.encodeWithSignature(
-                "initialize(uint32,address,address,address,address,address)",
+                "initialize(uint32,address,address,address,address,address,address)",
                 1,
                 address(this),
                 address(usdc),
                 mailbox,
                 0x3d0BE14dFbB1Eb736303260c1724B6ea270c8Dc4,
-                address(permit2)
+                address(permit2),
+                goFastCaller
             )
         );
         gateway = FastTransferGateway(address(gatewayProxy));
@@ -514,6 +520,125 @@ contract FastTransferGatewayTest is Test {
 
         (, address orderFiller,) = gateway.orderFills(OrderEncoder.id(order));
         assertEq(orderFiller, solver);
+    }
+
+    function test_revertFillOrderCantTransferTokensFromAnotherUser() public {
+        uint256 amountIn = 100_000000;
+        uint256 amountOut = 98_000000;
+        uint32 sourceDomain = 1;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        deal(address(usdc), solver, amountOut, true);
+        deal(address(usdc), user, 5 ether, true);
+
+        uint256 userBalanceBefore = usdc.balanceOf(user);
+
+        bytes memory data =
+            abi.encodeWithSelector(IERC20.transferFrom.selector, user, address(0x1337), uint256(5 ether));
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory order = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(usdc)),
+            amountIn: amountIn,
+            amountOut: amountOut,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 1,
+            timeoutTimestamp: block.timestamp + 1 days,
+            data: data
+        });
+
+        vm.prank(user);
+        usdc.approve(address(gateway), 5 ether);
+
+        vm.startPrank(solver);
+        usdc.approve(address(gateway), amountOut);
+
+        vm.expectRevert("ERC20: transfer amount exceeds allowance");
+        gateway.fillOrder(solver, order);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(user), userBalanceBefore);
+    }
+
+    function test_revertFillOrderCantTransferTokensFromGateway() public {
+        uint256 amountIn = 100_000000;
+        uint256 amountOut = 98_000000;
+        uint32 sourceDomain = 1;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        deal(address(usdc), solver, 5 ether);
+        deal(address(usdc), address(gateway), 5 ether, true);
+
+        bytes memory data = abi.encodeWithSelector(IERC20.transfer.selector, address(0x1337), uint256(5 ether));
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory order = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(usdc)),
+            amountIn: amountIn,
+            amountOut: amountOut,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 1,
+            timeoutTimestamp: block.timestamp + 1 days,
+            data: data
+        });
+
+        uint256 gatewayBalanceBefore = usdc.balanceOf(address(gateway));
+
+        vm.startPrank(solver);
+        usdc.approve(address(gateway), amountOut);
+
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        gateway.fillOrder(solver, order);
+        vm.stopPrank();
+
+        uint256 gatewayBalanceAfter = usdc.balanceOf(address(gateway));
+        assertEq(gatewayBalanceAfter, gatewayBalanceBefore);
+    }
+
+    function test_revertFillOrderCantCallMailbox() public {
+        uint256 amountIn = 100_000000;
+        uint256 amountOut = 98_000000;
+        uint32 sourceDomain = 1;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        deal(address(usdc), solver, 5 ether);
+        deal(address(usdc), address(gateway), 5 ether, true);
+
+        bytes memory data = abi.encodeWithSelector(
+            IMailbox.dispatch.selector, 1, TypeCasts.addressToBytes32(address(0x1337)), bytes("")
+        );
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory order = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(mailbox)),
+            amountIn: amountIn,
+            amountOut: amountOut,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 1,
+            timeoutTimestamp: block.timestamp + 1 days,
+            data: data
+        });
+
+        uint256 gatewayBalanceBefore = usdc.balanceOf(address(gateway));
+
+        vm.startPrank(solver);
+        usdc.approve(address(gateway), amountOut);
+
+        vm.expectRevert("FastTransferGateway: order recipient cannot be mailbox");
+        gateway.fillOrder(solver, order);
+        vm.stopPrank();
+
+        uint256 gatewayBalanceAfter = usdc.balanceOf(address(gateway));
+        assertEq(gatewayBalanceAfter, gatewayBalanceBefore);
     }
 
     function test_revertFillOrderWhenOrderExpired() public {

@@ -8,7 +8,10 @@ use go_fast::{
     gateway::{ExecuteMsg, OrderFill, QueryMsg},
     FastTransferOrder,
 };
-use go_fast_transfer_cw::helpers::{bech32_decode, left_pad_bytes};
+use go_fast_transfer_cw::{
+    helpers::{bech32_decode, left_pad_bytes},
+    state::CONFIG,
+};
 
 pub mod common;
 
@@ -165,6 +168,55 @@ fn test_fill_order_with_data() {
             source_domain: 2
         }
     );
+}
+
+#[test]
+fn test_fill_order_fails_when_order_recipient_is_mailbox() {
+    let (mut deps, env) = default_instantiate();
+
+    let user_address = deps.api.with_prefix("osmo").addr_make("user");
+
+    let test_payload = to_json_binary(&BankMsg::Send {
+        to_address: "solver".to_string().into(),
+        amount: vec![coin(98_000_000, "uusdc")],
+    })
+    .unwrap();
+
+    let mailbox_address = CONFIG.load(deps.as_ref().storage).unwrap().mailbox_addr;
+
+    let order = FastTransferOrder {
+        sender: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        recipient: HexBinary::from(left_pad_bytes(
+            bech32_decode(mailbox_address.as_str()).unwrap(),
+            32,
+        )),
+        amount_in: Uint128::new(100_000_000),
+        amount_out: Uint128::new(98_000_000),
+        nonce: 1,
+        source_domain: 2,
+        destination_domain: 1,
+        timeout_timestamp: env.block.time.seconds() + 1000,
+        data: Some(HexBinary::from(test_payload.clone())),
+    };
+
+    let execute_msg = ExecuteMsg::FillOrder {
+        filler: Addr::unchecked("solver"),
+        order: order.clone(),
+    };
+
+    let res = go_fast_transfer_cw::contract::execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info("solver", &[coin(order.amount_out.u128(), "uusdc")]),
+        execute_msg.clone(),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert_eq!(res, "Order recipient cannot be mailbox");
 }
 
 #[test]

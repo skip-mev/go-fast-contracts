@@ -61,6 +61,10 @@ pub fn fill_order(
 
     let recipient_address = bech32_encode(&config.address_prefix, &order.recipient)?;
 
+    if recipient_address == config.mailbox_addr {
+        return Err(ContractError::OrderRecipientCannotBeMailbox);
+    }
+
     let msg: CosmosMsg = match order.data {
         Some(data) => WasmMsg::Execute {
             contract_addr: recipient_address.clone().to_string(),

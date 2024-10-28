@@ -12,6 +12,7 @@ import {IPermit2} from "../src/interfaces/IPermit2.sol";
 import {OnchainCrossChainOrder, GaslessCrossChainOrder} from "../src/erc7683/ERC7683.sol";
 import {GoFastERC7683, OrderData} from "../src/GoFastERC7683.sol";
 import {OrderEncoder} from "../src/libraries/OrderEncoder.sol";
+import {GoFastCaller} from "../src/GoFastMulticall.sol";
 
 interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
@@ -55,17 +56,20 @@ contract ERC7683Test is Test {
         solver = address(2);
         mailbox = address(0x979Ca5202784112f4738403dBec5D0F3B9daabB9);
 
+        GoFastCaller goFastCaller = new GoFastCaller();
+
         FastTransferGateway gatewayImpl = new FastTransferGateway();
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(
             address(gatewayImpl),
             abi.encodeWithSignature(
-                "initialize(uint32,address,address,address,address,address)",
+                "initialize(uint32,address,address,address,address,address,address)",
                 1,
                 address(this),
                 address(usdc),
                 mailbox,
                 0x3d0BE14dFbB1Eb736303260c1724B6ea270c8Dc4,
-                address(permit2)
+                address(permit2),
+                address(goFastCaller)
             )
         );
         gateway = FastTransferGateway(address(gatewayProxy));
