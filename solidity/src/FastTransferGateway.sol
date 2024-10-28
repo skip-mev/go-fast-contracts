@@ -266,6 +266,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
     /// @param repaymentAddress The address to repay the orders to
     /// @param orderIDs The IDs of the orders to settle
     function initiateSettlement(bytes32 repaymentAddress, bytes memory orderIDs) public payable {
+        _checkForDuplicateOrders(orderIDs);
+
         uint32 sourceDomain;
         for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
             bytes32 orderID;
@@ -499,6 +501,26 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         require(orderFill.filler != address(0), "FastTransferGateway: order not filled");
 
         return orderFill;
+    }
+
+    function _checkForDuplicateOrders(bytes memory orderIDs) internal pure {
+        for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
+            bytes32 orderID;
+            assembly {
+                orderID := mload(add(orderIDs, add(0x20, pos)))
+            }
+
+            for (uint256 pos2 = pos + 32; pos2 < orderIDs.length; pos2 += 32) {
+                bytes32 orderID2;
+                assembly {
+                    orderID2 := mload(add(orderIDs, add(0x20, pos2)))
+                }
+
+                if (orderID2 == orderID) {
+                    revert("FastTransferGateway: duplicate order");
+                }
+            }
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

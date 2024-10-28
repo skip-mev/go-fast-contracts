@@ -47,6 +47,9 @@ pub enum ContractError {
 
     #[error("Order recipient cannot be mailbox")]
     OrderRecipientCannotBeMailbox,
+
+    #[error("Duplicate order")]
+    DuplicateOrder,
 }
 
 pub type ContractResult<T> = Result<T, ContractError>;

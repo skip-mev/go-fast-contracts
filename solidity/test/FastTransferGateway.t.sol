@@ -894,6 +894,45 @@ contract FastTransferGatewayTest is Test {
         vm.stopPrank();
     }
 
+    function test_revertInitiateSettlementOnDuplicateOrder() public {
+        uint32 sourceDomain = 8453;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory orderA = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(0xC)),
+            amountIn: 100_000000,
+            amountOut: 98_000000,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 1,
+            timeoutTimestamp: block.timestamp + 1 days,
+            data: bytes("")
+        });
+
+        deal(address(usdc), solver, orderA.amountOut + orderA.amountOut, true);
+        deal(solver, 1 ether);
+
+        bytes memory orderIDs;
+        orderIDs = bytes.concat(orderIDs, OrderEncoder.id(orderA));
+        orderIDs = bytes.concat(orderIDs, OrderEncoder.id(orderA));
+
+        uint256 hyperlaneFee =
+            gateway.quoteInitiateSettlement(sourceDomain, TypeCasts.addressToBytes32(solver), orderIDs);
+
+        vm.startPrank(solver);
+
+        usdc.approve(address(gateway), orderA.amountOut + orderA.amountOut);
+
+        gateway.fillOrder(solver, orderA);
+
+        vm.expectRevert("FastTransferGateway: duplicate order");
+        gateway.initiateSettlement{value: hyperlaneFee}(TypeCasts.addressToBytes32(solver), orderIDs);
+        vm.stopPrank();
+    }
+
     function test_initiateTimeout() public {
         uint32 sourceDomain = 8453;
         bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));

@@ -319,3 +319,37 @@ fn test_initiate_settlement_multiple_orders_fails_if_source_domains_are_differen
 
     assert_eq!(res, "Source domains must match");
 }
+
+#[test]
+fn test_initiate_settlement_fails_if_orders_are_duplicate() {
+    let (mut deps, env) = default_instantiate();
+
+    let solver_address = deps.api.with_prefix("osmo").addr_make("solver");
+
+    let order_id = HexBinary::from_hex("1234").unwrap();
+
+    state::order_fills()
+        .create_order_fill(
+            deps.as_mut().storage,
+            order_id.clone(),
+            solver_address.clone(),
+            2,
+        )
+        .unwrap();
+
+    let execute_msg = ExecuteMsg::InitiateSettlement {
+        order_ids: vec![order_id.clone(), order_id.clone()],
+        repayment_address: HexBinary::from(left_pad_bytes(
+            bech32_decode(solver_address.as_str()).unwrap(),
+            32,
+        )),
+    };
+
+    let info = mock_info(solver_address.as_str(), &[]);
+
+    let res = go_fast_transfer_cw::contract::execute(deps.as_mut(), env, info, execute_msg.clone())
+        .unwrap_err()
+        .to_string();
+
+    assert_eq!(res, "Duplicate order");
+}

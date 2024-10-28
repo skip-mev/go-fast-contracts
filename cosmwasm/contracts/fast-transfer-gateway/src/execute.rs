@@ -100,6 +100,10 @@ pub fn initiate_settlement(
             return Err(ContractError::Unauthorized);
         }
 
+        if fills_to_settle.contains(&order_fill) {
+            return Err(ContractError::DuplicateOrder);
+        }
+
         fills_to_settle.push(order_fill);
     }
 
