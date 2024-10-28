@@ -318,3 +318,60 @@ fn test_initiate_timeout_fails_if_source_domain_is_unknown() {
 
     assert_eq!(res, "Unknown remote domain");
 }
+
+#[test]
+fn test_initiate_timeout_fails_if_destination_domain_is_not_the_local_domain() {
+    let (mut deps, env) = default_instantiate();
+
+    let solver_address = deps.api.with_prefix("osmo").addr_make("solver");
+
+    let user_address = deps.api.with_prefix("osmo").addr_make("user");
+
+    let order_a = FastTransferOrder {
+        sender: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        recipient: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        amount_in: Uint128::new(100_000_000),
+        amount_out: Uint128::new(98_000_000),
+        nonce: 1,
+        source_domain: 2,
+        destination_domain: 3,
+        timeout_timestamp: env.block.time.seconds() - 1000,
+        data: None,
+    };
+
+    let order_b = FastTransferOrder {
+        sender: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        recipient: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        amount_in: Uint128::new(100_000_000),
+        amount_out: Uint128::new(98_000_000),
+        nonce: 1,
+        source_domain: 2,
+        destination_domain: 1,
+        timeout_timestamp: env.block.time.seconds() - 1000,
+        data: None,
+    };
+
+    let execute_msg = ExecuteMsg::InitiateTimeout {
+        orders: vec![order_a, order_b],
+    };
+
+    let info = mock_info(solver_address.as_str(), &[]);
+
+    let res = go_fast_transfer_cw::contract::execute(deps.as_mut(), env, info, execute_msg.clone())
+        .unwrap_err()
+        .to_string();
+
+    assert_eq!(res, "Invalid local domain");
+}

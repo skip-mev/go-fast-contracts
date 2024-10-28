@@ -295,6 +295,9 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint32 sourceDomain;
         for (uint256 i = 0; i < orders.length; i++) {
             FastTransferOrder memory order = orders[i];
+
+            require(order.destinationDomain == localDomain, "FastTransferGateway: invalid local domain");
+
             bytes32 orderID = _orderID(order);
             OrderStatus status = orderStatuses[orderID];
 

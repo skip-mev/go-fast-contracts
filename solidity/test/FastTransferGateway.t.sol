@@ -1041,6 +1041,38 @@ contract FastTransferGatewayTest is Test {
         vm.stopPrank();
     }
 
+    function test_initiateTimeoutRevertsIfDestinationDomainIsNotTheLocalDomain() public {
+        uint32 sourceDomain = 8453;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory orderA = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(0xC)),
+            amountIn: 100_000000,
+            amountOut: 98_000000,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 3,
+            timeoutTimestamp: block.timestamp - 1 hours,
+            data: bytes("")
+        });
+
+        deal(address(usdc), solver, orderA.amountOut, true);
+        deal(solver, 1 ether);
+
+        FastTransferOrder[] memory orders = new FastTransferOrder[](1);
+        orders[0] = orderA;
+
+        uint256 hyperlaneFee = gateway.quoteInitiateTimeout(sourceDomain, orders);
+
+        vm.startPrank(solver);
+        vm.expectRevert("FastTransferGateway: invalid local domain");
+        gateway.initiateTimeout{value: hyperlaneFee}(orders);
+        vm.stopPrank();
+    }
+
     function _submitOrder(uint256 amountIn, uint256 amountOut, uint32 destinationDomain, bytes memory data)
         internal
         returns (bytes32)

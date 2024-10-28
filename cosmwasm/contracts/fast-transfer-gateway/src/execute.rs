@@ -151,6 +151,7 @@ pub fn initiate_timeout(
     for order in &orders {
         assert_order_is_expired(&env, order)?;
         assert_order_not_filled(deps.as_ref(), order.id())?;
+        assert_local_domain(deps.as_ref(), order.destination_domain)?;
     }
 
     let order_ids = orders
