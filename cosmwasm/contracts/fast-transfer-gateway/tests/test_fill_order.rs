@@ -522,3 +522,44 @@ fn test_fill_order_fails_on_timed_out_order() {
 
     assert_eq!(res, "Order timed out");
 }
+
+#[test]
+fn test_fill_order_fails_on_timed_out_order_exact() {
+    let (mut deps, env) = default_instantiate();
+
+    let user_address = deps.api.with_prefix("osmo").addr_make("user");
+
+    let order = FastTransferOrder {
+        sender: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        recipient: HexBinary::from(left_pad_bytes(
+            bech32_decode(user_address.as_str()).unwrap(),
+            32,
+        )),
+        amount_in: Uint128::new(100_000_000),
+        amount_out: Uint128::new(98_000_000),
+        nonce: 1,
+        source_domain: 2,
+        destination_domain: 1,
+        timeout_timestamp: env.block.time.seconds(),
+        data: None,
+    };
+
+    let execute_msg = ExecuteMsg::FillOrder {
+        filler: Addr::unchecked("solver"),
+        order: order.clone(),
+    };
+
+    let res = go_fast_transfer_cw::contract::execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info("solver", &[coin(order.amount_out.u128(), "uusdc")]),
+        execute_msg.clone(),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert_eq!(res, "Order timed out");
+}

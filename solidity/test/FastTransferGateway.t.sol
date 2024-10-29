@@ -671,6 +671,36 @@ contract FastTransferGatewayTest is Test {
         vm.stopPrank();
     }
 
+    function test_revertFillOrderWhenOrderExpiredExact() public {
+        uint256 amountIn = 100_000000;
+        uint256 amountOut = 98_000000;
+        uint32 sourceDomain = 1;
+        bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));
+
+        deal(address(usdc), solver, amountOut, true);
+
+        gateway.setRemoteDomain(sourceDomain, sourceContract);
+
+        FastTransferOrder memory order = FastTransferOrder({
+            sender: TypeCasts.addressToBytes32(address(0xB)),
+            recipient: TypeCasts.addressToBytes32(address(0xC)),
+            amountIn: amountIn,
+            amountOut: amountOut,
+            nonce: 1,
+            sourceDomain: sourceDomain,
+            destinationDomain: 1,
+            timeoutTimestamp: uint64(block.timestamp),
+            data: bytes("")
+        });
+
+        vm.startPrank(solver);
+        usdc.approve(address(gateway), amountOut);
+
+        vm.expectRevert("FastTransferGateway: order expired");
+        gateway.fillOrder(solver, order);
+        vm.stopPrank();
+    }
+
     function test_initiateSettlement() public {
         uint32 sourceDomain = 8453;
         bytes32 sourceContract = TypeCasts.addressToBytes32(address(0xB));

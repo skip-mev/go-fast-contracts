@@ -48,12 +48,8 @@ pub fn assert_order_is_expired(env: &Env, order: &FastTransferOrder) -> Contract
 }
 
 pub fn assert_order_is_not_expired(env: &Env, order: &FastTransferOrder) -> ContractResult<()> {
-    if order.timeout_timestamp == 0 {
-        return Ok(());
-    }
-
     let timeout_timestamp = Timestamp::from_seconds(order.timeout_timestamp);
-    if env.block.time.seconds() > timeout_timestamp.seconds() {
+    if env.block.time.seconds() >= timeout_timestamp.seconds() {
         return Err(ContractError::OrderTimedOut);
     }
 
