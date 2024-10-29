@@ -56,9 +56,7 @@ fn test_initiate_settlement() {
                         "00b8789db0c2da6b48ff31471423dc7ffa2386902c666fa2691e636c29b539936a1234"
                     )
                     .unwrap(),
-                    hook: Some(
-                        "hook_contract_address".into()
-                    ),
+                    hook: Some("hook_contract_address".into()),
                     metadata: None
                 }))
                 .unwrap(),
