@@ -29,6 +29,7 @@ pub fn default_instantiate() -> (OwnedDeps<MemoryStorage, MockApi, MockQuerier>,
                 token_denom: "uusdc".to_string(),
                 address_prefix: "osmo".to_string(),
                 mailbox_addr: "mailbox_contract_address".into(),
+                hook_addr: "hook_contract_address".into(),
             },
         )
         .unwrap();

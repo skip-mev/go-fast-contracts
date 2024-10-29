@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 use cw_ownable::assert_owner;
 use go_fast::{gateway::Config, FastTransferOrder};
-use hyperlane::mailbox::{get_default_hook, DispatchMsg, ExecuteMsg as MailboxExecuteMsg};
+use hyperlane::mailbox::{DispatchMsg, ExecuteMsg as MailboxExecuteMsg};
 
 use crate::{
     error::{ContractError, ContractResponse},
@@ -114,8 +114,6 @@ pub fn initiate_settlement(
 
     let remote_contract_address = remote_contract_address.unwrap();
 
-    let default_hook = get_default_hook(deps.as_ref(), config.mailbox_addr.clone())?;
-
     let settle_orders_message = SettleOrdersMessage {
         repayment_address,
         order_ids,
@@ -127,7 +125,7 @@ pub fn initiate_settlement(
             dest_domain: source_domain,
             recipient_addr: remote_contract_address.clone(),
             msg_body: settle_orders_message.encode(),
-            hook: Some(default_hook),
+            hook: Some(config.hook_addr.clone()),
             metadata: None,
         }))?,
         funds: info.funds,
@@ -169,8 +167,6 @@ pub fn initiate_timeout(
 
     let remote_contract_address = remote_contract_address.unwrap();
 
-    let default_hook = get_default_hook(deps.as_ref(), config.mailbox_addr.clone())?;
-
     let timeout_orders_message = TimeoutOrdersMessage { order_ids };
 
     let msg = WasmMsg::Execute {
@@ -179,7 +175,7 @@ pub fn initiate_timeout(
             dest_domain: source_domain,
             recipient_addr: remote_contract_address.clone(),
             msg_body: timeout_orders_message.encode(),
-            hook: Some(default_hook),
+            hook: Some(config.hook_addr.clone()),
             metadata: None,
         }))?,
         funds: info.funds,

@@ -20,6 +20,7 @@ fn test_instantiate() {
         token_denom: "uusdc".to_string(),
         address_prefix: "osmo".to_string(),
         mailbox_addr: "mailbox_contract_address".into(),
+        hook_addr: "hook_contract_address".into(),
         local_domain: 1,
     };
 
@@ -31,6 +32,7 @@ fn test_instantiate() {
     assert_eq!(config.token_denom, instantiate_msg.token_denom);
     assert_eq!(config.address_prefix, instantiate_msg.address_prefix);
     assert_eq!(config.mailbox_addr, instantiate_msg.mailbox_addr);
+    assert_eq!(config.hook_addr, instantiate_msg.hook_addr);
 
     let local_domain = LOCAL_DOMAIN.load(deps.as_ref().storage).unwrap();
     assert_eq!(local_domain, 1);
