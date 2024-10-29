@@ -177,7 +177,7 @@ fn test_fill_order_fails_when_order_recipient_is_mailbox() {
     let user_address = deps.api.with_prefix("osmo").addr_make("user");
 
     let test_payload = to_json_binary(&BankMsg::Send {
-        to_address: "solver".to_string().into(),
+        to_address: "solver".to_string(),
         amount: vec![coin(98_000_000, "uusdc")],
     })
     .unwrap();
