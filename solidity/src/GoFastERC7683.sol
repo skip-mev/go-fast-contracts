@@ -32,7 +32,7 @@ struct OrderData {
     uint256 amountOut;
     uint32 sourceDomain;
     uint32 destinationDomain;
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     bytes data;
 }
 
@@ -52,7 +52,7 @@ contract GoFastERC7683 is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
         "uint256 amountOut,",
         "uint32 sourceDomain,",
         "uint32 destinationDomain,",
-        "uint256 timeoutTimestamp,",
+        "uint64 timeoutTimestamp,",
         "bytes data)"
     );
 
@@ -109,7 +109,7 @@ contract GoFastERC7683 is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
 
         address inputToken = TypeCasts.bytes32ToAddress(bytes32(orderData.inputToken));
 
-        _permitTransferFrom(inputToken, orderData.amountIn, order.openDeadline, order.nonce, signature);
+        _permitTransferFrom(inputToken, orderData.amountIn, order.openDeadline, uint32(order.nonce), signature);
 
         IERC20(inputToken).approve(gateway, orderData.amountIn);
 
@@ -247,7 +247,7 @@ contract GoFastERC7683 is Initializable, UUPSUpgradeable, OwnableUpgradeable, Re
         address token,
         uint256 amount,
         uint256 deadline,
-        uint256 nonce,
+        uint32 nonce,
         bytes calldata signature
     ) internal {
         PERMIT2.permitTransferFrom(

@@ -82,7 +82,7 @@ fn test_initiate_timeout() {
                     )
                     .unwrap(),
                     msg_body: HexBinary::from_hex(
-                        "0148497add4581c6bb69bbc7ce250379c4238cf24cfcf4334ef99c35afd5a5effa48497add4581c6bb69bbc7ce250379c4238cf24cfcf4334ef99c35afd5a5effa"
+                        "01b52d0eadcef62db278b39caf9af717fb004d9dc610849c083120e1d477c75f8eb52d0eadcef62db278b39caf9af717fb004d9dc610849c083120e1d477c75f8e"
                     )
                     .unwrap(),
                     hook: Some(

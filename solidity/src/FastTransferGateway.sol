@@ -42,13 +42,13 @@ struct FastTransferOrder {
     // The amount of tokens the user is receiving on the destination domain
     uint256 amountOut;
     // Nonce of the order
-    uint256 nonce;
+    uint32 nonce;
     // Source domain of the order
     uint32 sourceDomain;
     // Destination domain of the order
     uint32 destinationDomain;
     // Deadline that the order must be filled on the destination domain by
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // Optional calldata passed on to the recipient on the destination domain when the order is filled
     bytes data;
 }
@@ -162,7 +162,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint256 amountIn,
         uint256 amountOut,
         uint32 destinationDomain,
-        uint256 timeoutTimestamp,
+        uint64 timeoutTimestamp,
         bytes calldata data
     ) public returns (bytes32) {
         FastTransferOrder memory order = FastTransferOrder(
@@ -203,7 +203,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint256 amountIn,
         uint256 amountOut,
         uint32 destinationDomain,
-        uint256 timeoutTimestamp,
+        uint64 timeoutTimestamp,
         uint256 permitDeadline,
         bytes calldata data,
         bytes calldata signature
@@ -470,7 +470,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         emit OrderRefunded(orderID);
     }
 
-    function _permitTransferFrom(uint256 amount, uint256 deadline, uint256 orderNonce, bytes calldata signature)
+    function _permitTransferFrom(uint256 amount, uint256 deadline, uint32 orderNonce, bytes calldata signature)
         internal
     {
         PERMIT2.permitTransferFrom(

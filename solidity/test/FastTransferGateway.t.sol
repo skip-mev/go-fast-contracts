@@ -198,7 +198,7 @@ contract FastTransferGatewayTest is Test {
             amountIn,
             amountOut,
             3,
-            block.timestamp + 1 days,
+            uint64(block.timestamp + 1 days),
             bytes("")
         );
 
@@ -406,8 +406,8 @@ contract FastTransferGatewayTest is Test {
                 amountIn,
                 amountOut,
                 destinationDomain,
-                block.timestamp + 1 days,
-                block.timestamp + 1 days,
+                uint64(block.timestamp + 1 days),
+                uint64(block.timestamp + 1 days),
                 bytes(""),
                 sig
             );
@@ -440,7 +440,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -486,7 +486,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: abi.encodeWithSelector(
                 uniswapV2Router.swapExactTokensForTokens.selector,
                 amountOut,
@@ -546,7 +546,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: data
         });
 
@@ -584,7 +584,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: data
         });
 
@@ -624,7 +624,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: data
         });
 
@@ -659,7 +659,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp - 1 days,
+            timeoutTimestamp: uint64(block.timestamp - 1 days),
             data: bytes("")
         });
 
@@ -685,7 +685,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -697,7 +697,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 2,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -736,7 +736,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -748,7 +748,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 2,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -792,7 +792,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -804,7 +804,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 2,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -856,7 +856,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -868,7 +868,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 2,
             sourceDomain: 1,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -908,7 +908,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
@@ -947,7 +947,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp - 1 hours,
+            timeoutTimestamp: uint64(block.timestamp - 1 hours),
             data: bytes("")
         });
 
@@ -978,7 +978,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 hours,
+            timeoutTimestamp: uint64(block.timestamp + 1 hours),
             data: bytes("")
         });
 
@@ -1010,7 +1010,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 hours,
+            timeoutTimestamp: uint64(block.timestamp + 1 hours),
             data: bytes("")
         });
 
@@ -1049,7 +1049,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp - 1 hours,
+            timeoutTimestamp: uint64(block.timestamp - 1 hours),
             data: bytes("")
         });
 
@@ -1061,7 +1061,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 2,
             sourceDomain: 1,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp - 1 hours,
+            timeoutTimestamp: uint64(block.timestamp - 1 hours),
             data: bytes("")
         });
 
@@ -1094,7 +1094,7 @@ contract FastTransferGatewayTest is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 3,
-            timeoutTimestamp: block.timestamp - 1 hours,
+            timeoutTimestamp: uint64(block.timestamp - 1 hours),
             data: bytes("")
         });
 
@@ -1128,7 +1128,7 @@ contract FastTransferGatewayTest is Test {
             amountIn,
             amountOut,
             destinationDomain,
-            block.timestamp + 1 days,
+            uint64(block.timestamp + 1 days),
             data
         );
 

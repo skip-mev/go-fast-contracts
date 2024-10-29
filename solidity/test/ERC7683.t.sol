@@ -107,7 +107,7 @@ contract ERC7683Test is Test {
                     amountOut, // amountOut
                     1, // sourceDomain
                     2, // destinationDomain
-                    block.timestamp + 1 days, // timeoutTimestamp
+                    uint64(block.timestamp + 1 days), // timeoutTimestamp
                     bytes("") // data
                 )
             )
@@ -170,7 +170,7 @@ contract ERC7683Test is Test {
                     amountOut, // amountOut
                     1, // sourceDomain
                     2, // destinationDomain
-                    block.timestamp + 1 days, // timeoutTimestamp
+                    uint64(block.timestamp + 1 days), // timeoutTimestamp
                     bytes("") // data
                 )
             )
@@ -213,7 +213,7 @@ contract ERC7683Test is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 
