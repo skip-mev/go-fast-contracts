@@ -81,7 +81,7 @@ fn test_initiate_timeout() {
                     )
                     .unwrap(),
                     hook: Some(
-                        "osmo12pvc4v625ewl34uqqgm3ezw76durxlky5j4guz8kvhal7em3e5wqz7cnla".into()
+                        "hook_contract_address".into()
                     ),
                     metadata: None
                 }))

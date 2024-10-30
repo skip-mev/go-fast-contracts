@@ -8,6 +8,7 @@ pub struct Config {
     pub token_denom: String,
     pub address_prefix: String,
     pub mailbox_addr: String,
+    pub hook_addr: String,
 }
 
 #[cw_serde]
@@ -28,6 +29,7 @@ pub struct InstantiateMsg {
     pub token_denom: String,
     pub address_prefix: String,
     pub mailbox_addr: String,
+    pub hook_addr: String,
     pub local_domain: u32,
 }
 
