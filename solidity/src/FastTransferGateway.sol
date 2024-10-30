@@ -416,19 +416,6 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
             );
 
             amountToRepay += orderSettlementDetails.amount;
-        }
-
-        // effects
-        for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
-            bytes32 orderID;
-            assembly {
-                orderID := mload(add(orderIDs, add(0x20, pos)))
-            }
-
-            if (orderStatuses[orderID] != OrderStatus.UNFILLED) {
-                emit OrderAlreadySettled(orderID);
-                continue;
-            }
 
             orderStatuses[orderID] = OrderStatus.FILLED;
             emit OrderSettled(orderID);
