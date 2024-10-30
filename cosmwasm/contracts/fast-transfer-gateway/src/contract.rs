@@ -42,6 +42,7 @@ pub fn instantiate(
         token_denom: msg.token_denom,
         address_prefix: msg.address_prefix,
         mailbox_addr: msg.mailbox_addr,
+        hook_addr: msg.hook_addr,
     };
 
     CONFIG.save(deps.storage, &config)?;

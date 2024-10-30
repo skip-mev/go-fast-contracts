@@ -1,6 +1,6 @@
 use cosmwasm_std::{Addr, Coin, Deps, HexBinary, Order, StdError, StdResult};
 use go_fast::gateway::{Config, OrderFill, RemoteDomain};
-use hyperlane::mailbox::{get_default_hook, quote_dispatch, DispatchMsg};
+use hyperlane::mailbox::{quote_dispatch, DispatchMsg};
 
 use crate::{
     helpers::encode_settle_order_data,
@@ -64,13 +64,11 @@ pub fn quote_initiate_settlement(
 
     let remote_contract_address = remote_contract_address.unwrap();
 
-    let default_hook = get_default_hook(deps, config.mailbox_addr.clone())?;
-
     let dispatch_msg = DispatchMsg {
         dest_domain: source_domain,
         recipient_addr: remote_contract_address.clone(),
         msg_body: encode_settle_order_data(repayment_address, order_ids),
-        hook: Some(default_hook),
+        hook: Some(config.hook_addr.clone()),
         metadata: None,
     };
 

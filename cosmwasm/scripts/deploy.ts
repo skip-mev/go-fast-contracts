@@ -13,6 +13,8 @@ const tokenDenom =
   "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4";
 const mailboxAddr =
   "osmo1jjf788v9m5pcqghe0ky2hf4llxxe37dqz6609eychuwe3xzzq9eql969h3";
+const hookAddr =
+    "osmo13yswqchwtmv2ln9uz4w3865sfy5k8x0wg9qrv4vxflxjg0kuwwyqqpvqxz";
 const remoteDomain = 42161;
 const remoteAddr =
   "000000000000000000000000F7ceC3d387384bB6cE5792dAb161a65cFaCf8aB4";
@@ -21,6 +23,7 @@ interface InstantiateMsg {
   token_denom: string;
   address_prefix: string;
   mailbox_addr: string;
+  hook_addr: string,
   remote_domain: number;
   remote_addr: string;
 }
@@ -57,6 +60,7 @@ async function main() {
     token_denom: tokenDenom,
     address_prefix: CHAIN_PREFIX,
     mailbox_addr: mailboxAddr,
+    hook_addr: hookAddr,
     remote_domain: remoteDomain,
     remote_addr: remoteAddr,
   };

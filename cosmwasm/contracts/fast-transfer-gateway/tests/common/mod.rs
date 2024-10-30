@@ -36,6 +36,7 @@ pub fn default_instantiate() -> (OwnedDeps<MemoryStorage, MockApi, MockQuerier>,
                 )
                 .unwrap()
                 .into_string(),
+                hook_addr: "hook_contract_address".into(),
             },
         )
         .unwrap();

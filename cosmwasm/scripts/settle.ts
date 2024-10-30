@@ -21,6 +21,7 @@ interface InstantiateMsg {
   token_denom: string;
   address_prefix: string;
   mailbox_addr: string;
+  hook_addr: string;
   remote_domain: number;
   remote_addr: string;
 }
