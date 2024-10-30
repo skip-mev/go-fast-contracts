@@ -6,10 +6,12 @@ use cosmwasm_std::{
 };
 use go_fast::{
     gateway::{Config, ExecuteMsg},
+    helpers::keccak256_hash,
     FastTransferOrder,
 };
 use go_fast_transfer_cw::{
     error::ContractResponse,
+    helpers::bech32_encode,
     state::{CONFIG, LOCAL_DOMAIN, NONCE, REMOTE_DOMAINS},
 };
 use hyperlane::mailbox::{DefaultHookResponse, QueryMsg as HplQueryMsg, RequiredHookResponse};
@@ -28,7 +30,12 @@ pub fn default_instantiate() -> (OwnedDeps<MemoryStorage, MockApi, MockQuerier>,
             &Config {
                 token_denom: "uusdc".to_string(),
                 address_prefix: "osmo".to_string(),
-                mailbox_addr: "mailbox_contract_address".into(),
+                mailbox_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 hook_addr: "hook_contract_address".into(),
             },
         )
@@ -50,7 +57,14 @@ pub fn default_instantiate() -> (OwnedDeps<MemoryStorage, MockApi, MockQuerier>,
     let wasm_handler = |query: &WasmQuery| -> QuerierResult {
         match query {
             WasmQuery::Smart { contract_addr, msg } => {
-                if contract_addr == "mailbox_contract_address" {
+                if contract_addr
+                    == &bech32_encode(
+                        "osmo",
+                        &keccak256_hash("mailbox_contract_address".as_bytes()),
+                    )
+                    .unwrap()
+                    .into_string()
+                {
                     let msg: HplQueryMsg = from_json(msg).unwrap();
                     match msg {
                         HplQueryMsg::Hook(_) => todo!(),

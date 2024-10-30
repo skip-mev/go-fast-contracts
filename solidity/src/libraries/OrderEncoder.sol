@@ -28,11 +28,11 @@ library OrderEncoder {
         order.recipient = bytes32(orderBytes[32:64]);
         order.amountIn = uint256(bytes32(orderBytes[64:96]));
         order.amountOut = uint256(bytes32(orderBytes[96:128]));
-        order.nonce = uint256(bytes32(orderBytes[128:160]));
-        order.sourceDomain = uint32(bytes4(orderBytes[160:164]));
-        order.destinationDomain = uint32(bytes4(orderBytes[164:168]));
-        order.timeoutTimestamp = uint256(bytes32(orderBytes[168:200]));
-        order.data = bytes(orderBytes[200:]);
+        order.nonce = uint32(bytes4(orderBytes[128:132]));
+        order.sourceDomain = uint32(bytes4(orderBytes[132:136]));
+        order.destinationDomain = uint32(bytes4(orderBytes[136:140]));
+        order.timeoutTimestamp = uint64(bytes8(orderBytes[140:148]));
+        order.data = bytes(orderBytes[148:]);
 
         return order;
     }

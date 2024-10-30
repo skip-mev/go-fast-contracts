@@ -4,6 +4,7 @@ members  = [
   "contracts/fast-transfer-gateway",
   "contracts/cw7683",
   "packages/*",
+  "bin/print-order-id",
 ]
 
 [profile.release]

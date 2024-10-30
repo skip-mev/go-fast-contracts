@@ -54,11 +54,9 @@ impl From<FastTransferOrder> for HexBinary {
             .chain(order.amount_in.to_be_bytes().iter())
             .chain([0u8; 16].iter())
             .chain(order.amount_out.to_be_bytes().iter())
-            .chain([0u8; 28].iter())
             .chain(order.nonce.to_be_bytes().iter())
             .chain(order.source_domain.to_be_bytes().iter())
             .chain(order.destination_domain.to_be_bytes().iter())
-            .chain([0u8; 24].iter())
             .chain(order.timeout_timestamp.to_be_bytes().iter())
             .chain(data.iter())
             .cloned()
@@ -73,12 +71,12 @@ impl From<HexBinary> for FastTransferOrder {
         let recipient = HexBinary::from(value[32..64].to_vec());
         let amount_in = Uint128::new(u128::from_be_bytes(value[80..96].try_into().unwrap()));
         let amount_out = Uint128::new(u128::from_be_bytes(value[112..128].try_into().unwrap()));
-        let nonce = u32::from_be_bytes(value[156..160].try_into().unwrap());
-        let source_domain = u32::from_be_bytes(value[160..164].try_into().unwrap());
-        let destination_domain = u32::from_be_bytes(value[164..168].try_into().unwrap());
-        let timeout_timestamp = u64::from_be_bytes(value[192..200].try_into().unwrap());
-        let data = if value.len() > 200 {
-            Some(HexBinary::from(value[200..].to_vec()))
+        let nonce = u32::from_be_bytes(value[128..132].try_into().unwrap());
+        let source_domain = u32::from_be_bytes(value[132..136].try_into().unwrap());
+        let destination_domain = u32::from_be_bytes(value[136..140].try_into().unwrap());
+        let timeout_timestamp = u64::from_be_bytes(value[140..148].try_into().unwrap());
+        let data = if value.len() > 148 {
+            Some(HexBinary::from(value[148..].to_vec()))
         } else {
             None
         };

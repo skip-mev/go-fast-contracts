@@ -1,8 +1,8 @@
 use common::default_instantiate;
 use cosmwasm_std::{testing::mock_info, to_json_binary, Addr, HexBinary, ReplyOn, SubMsg, WasmMsg};
-use go_fast::gateway::ExecuteMsg;
+use go_fast::{gateway::ExecuteMsg, helpers::keccak256_hash};
 use go_fast_transfer_cw::{
-    helpers::{bech32_decode, left_pad_bytes},
+    helpers::{bech32_decode, bech32_encode, left_pad_bytes},
     state::{self, REMOTE_DOMAINS},
 };
 use hyperlane::mailbox::{DispatchMsg, ExecuteMsg as MailboxExecuteMsg};
@@ -45,7 +45,12 @@ fn test_initiate_settlement() {
         SubMsg {
             id: 0,
             msg: WasmMsg::Execute {
-                contract_addr: "mailbox_contract_address".into(),
+                contract_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 msg: to_json_binary(&MailboxExecuteMsg::Dispatch(DispatchMsg {
                     dest_domain: 2,
                     recipient_addr: HexBinary::from_hex(
@@ -115,7 +120,12 @@ fn test_initiate_settlement_multiple_orders() {
         SubMsg {
             id: 0,
             msg: WasmMsg::Execute {
-                contract_addr: "mailbox_contract_address".into(),
+                contract_addr: bech32_encode(
+                    "osmo",
+                    &keccak256_hash("mailbox_contract_address".as_bytes()),
+                )
+                .unwrap()
+                .into_string(),
                 msg: to_json_binary(&MailboxExecuteMsg::Dispatch(DispatchMsg {
                     dest_domain: 2,
                     recipient_addr: HexBinary::from_hex(
@@ -306,4 +316,38 @@ fn test_initiate_settlement_multiple_orders_fails_if_source_domains_are_differen
         .to_string();
 
     assert_eq!(res, "Source domains must match");
+}
+
+#[test]
+fn test_initiate_settlement_fails_if_orders_are_duplicate() {
+    let (mut deps, env) = default_instantiate();
+
+    let solver_address = deps.api.with_prefix("osmo").addr_make("solver");
+
+    let order_id = HexBinary::from_hex("1234").unwrap();
+
+    state::order_fills()
+        .create_order_fill(
+            deps.as_mut().storage,
+            order_id.clone(),
+            solver_address.clone(),
+            2,
+        )
+        .unwrap();
+
+    let execute_msg = ExecuteMsg::InitiateSettlement {
+        order_ids: vec![order_id.clone(), order_id.clone()],
+        repayment_address: HexBinary::from(left_pad_bytes(
+            bech32_decode(solver_address.as_str()).unwrap(),
+            32,
+        )),
+    };
+
+    let info = mock_info(solver_address.as_str(), &[]);
+
+    let res = go_fast_transfer_cw::contract::execute(deps.as_mut(), env, info, execute_msg.clone())
+        .unwrap_err()
+        .to_string();
+
+    assert_eq!(res, "Duplicate order");
 }

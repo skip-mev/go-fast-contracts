@@ -1,9 +1,9 @@
 use crate::common::default_instantiate;
 use common::submit_order;
 use cosmwasm_std::{coin, testing::mock_info, BankMsg, HexBinary, ReplyOn, SubMsg, Uint128};
-use go_fast::{gateway::ExecuteMsg, FastTransferOrder};
+use go_fast::{gateway::ExecuteMsg, helpers::keccak256_hash, FastTransferOrder};
 use go_fast_transfer_cw::{
-    helpers::{bech32_decode, left_pad_bytes},
+    helpers::{bech32_decode, bech32_encode, left_pad_bytes},
     msg::{OrderStatus, SettleOrdersMessage},
     state::{ORDER_STATUSES, REMOTE_DOMAINS},
 };
@@ -80,7 +80,15 @@ fn test_settle_orders() {
         repayment_address: solver_hex.clone(),
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
@@ -200,7 +208,15 @@ fn test_settle_orders_ignores_settled_orders_but_does_not_fail() {
         repayment_address: solver_hex.clone(),
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
@@ -291,7 +307,15 @@ fn test_settle_orders_fails_on_unknown_order() {
         repayment_address: solver_hex.clone(),
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
@@ -386,7 +410,15 @@ fn test_settle_orders_fails_if_orders_destination_domain_is_not_domain_message_o
         repayment_address: solver_hex.clone(),
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,

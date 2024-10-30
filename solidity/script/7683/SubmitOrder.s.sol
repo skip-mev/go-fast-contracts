@@ -41,7 +41,7 @@ contract DeployScript is Script {
                     amount, // amountOut
                     localDomain, // sourceDomain
                     destinationDomain, // destinationDomain
-                    block.timestamp + 1 days, // timeoutTimestamp
+                    uint64(block.timestamp + 1 days), // timeoutTimestamp
                     data
                 )
             )

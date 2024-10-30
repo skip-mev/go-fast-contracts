@@ -1,9 +1,9 @@
 use crate::common::default_instantiate;
 use common::submit_order;
 use cosmwasm_std::{coin, testing::mock_info, BankMsg, HexBinary, ReplyOn, SubMsg, Uint128};
-use go_fast::{gateway::ExecuteMsg, FastTransferOrder};
+use go_fast::{gateway::ExecuteMsg, helpers::keccak256_hash, FastTransferOrder};
 use go_fast_transfer_cw::{
-    helpers::{bech32_decode, left_pad_bytes},
+    helpers::{bech32_decode, bech32_encode, left_pad_bytes},
     msg::{OrderStatus, TimeoutOrdersMessage},
     state::{ORDER_STATUSES, REMOTE_DOMAINS},
 };
@@ -76,7 +76,15 @@ fn test_refund_orders() {
         order_ids: vec![order_a.id(), order_b.id()],
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
@@ -184,7 +192,15 @@ fn test_refund_orders_fails_on_unknown_order_id() {
         order_ids: vec![order_a.id(), order_b.id()],
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
@@ -275,7 +291,15 @@ fn test_refund_orders_fails_if_orders_destination_domain_is_not_domain_message_o
         order_ids: vec![order_a.id(), order_b.id()],
     };
 
-    let info = mock_info("mailbox_contract_address", &[]);
+    let info = mock_info(
+        &bech32_encode(
+            "osmo",
+            &keccak256_hash("mailbox_contract_address".as_bytes()),
+        )
+        .unwrap()
+        .into_string(),
+        &[],
+    );
 
     let execute_msg = ExecuteMsg::Handle(HandleMsg {
         origin: order_a.destination_domain,
