@@ -9,11 +9,14 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
+import {console} from "forge-std/console.sol";
+
 import {TypeCasts} from "./libraries/TypeCasts.sol";
 import {OrderEncoder} from "./libraries/OrderEncoder.sol";
 
 import {IPermit2} from "./interfaces/IPermit2.sol";
 import {IMailbox} from "./interfaces/hyperlane/IMailbox.sol";
+import {GoFastCaller} from "./GoFastCaller.sol";
 
 // Structure that contains the order details required to settle or refund an order
 
@@ -40,13 +43,13 @@ struct FastTransferOrder {
     // The amount of tokens the user is receiving on the destination domain
     uint256 amountOut;
     // Nonce of the order
-    uint256 nonce;
+    uint32 nonce;
     // Source domain of the order
     uint32 sourceDomain;
     // Destination domain of the order
     uint32 destinationDomain;
     // Deadline that the order must be filled on the destination domain by
-    uint256 timeoutTimestamp;
+    uint64 timeoutTimestamp;
     // Optional calldata passed on to the recipient on the destination domain when the order is filled
     bytes data;
 }
@@ -90,6 +93,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
 
     mapping(bytes32 => OrderFill) public orderFills;
 
+    GoFastCaller public goFastCaller;
+
     constructor() {
         _disableInitializers();
     }
@@ -100,7 +105,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         address _token,
         address _mailbox,
         address _interchainSecurityModule,
-        address _permit2
+        address _permit2,
+        address _goFastCaller
     ) external initializer {
         __Ownable_init(_owner);
 
@@ -110,6 +116,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         localDomain = _localDomain;
         PERMIT2 = IPermit2(_permit2);
         nonce = 1;
+        goFastCaller = GoFastCaller(_goFastCaller);
     }
 
     /// @dev Emitted when an order is submitted
@@ -156,7 +163,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint256 amountIn,
         uint256 amountOut,
         uint32 destinationDomain,
-        uint256 timeoutTimestamp,
+        uint64 timeoutTimestamp,
         bytes calldata data
     ) public returns (bytes32) {
         FastTransferOrder memory order = FastTransferOrder(
@@ -197,7 +204,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint256 amountIn,
         uint256 amountOut,
         uint32 destinationDomain,
-        uint256 timeoutTimestamp,
+        uint64 timeoutTimestamp,
         uint256 permitDeadline,
         bytes calldata data,
         bytes calldata signature
@@ -237,13 +244,14 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
 
         address recipient = TypeCasts.bytes32ToAddress(order.recipient);
 
+        require(recipient != address(mailbox), "FastTransferGateway: order recipient cannot be mailbox");
+
         orderStatuses[orderID] = OrderStatus.FILLED;
         orderFills[orderID] = OrderFill(orderID, filler, order.sourceDomain);
 
         if (order.data.length > 0) {
-            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), order.amountOut);
-            IERC20(token).approve(address(recipient), order.amountOut);
-            (bool success,) = address(recipient).call(order.data);
+            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(goFastCaller), order.amountOut);
+            (bool success,) = goFastCaller.execute(address(recipient), token, order.amountOut, order.data);
             if (!success) {
                 assembly {
                     returndatacopy(0, 0, returndatasize())
@@ -259,6 +267,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
     /// @param repaymentAddress The address to repay the orders to
     /// @param orderIDs The IDs of the orders to settle
     function initiateSettlement(bytes32 repaymentAddress, bytes memory orderIDs) public payable {
+        _checkForDuplicateOrders(orderIDs);
+
         uint32 sourceDomain;
         for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
             bytes32 orderID;
@@ -288,6 +298,9 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint32 sourceDomain;
         for (uint256 i = 0; i < orders.length; i++) {
             FastTransferOrder memory order = orders[i];
+
+            require(order.destinationDomain == localDomain, "FastTransferGateway: invalid local domain");
+
             bytes32 orderID = _orderID(order);
             OrderStatus status = orderStatuses[orderID];
 
@@ -404,19 +417,6 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
             );
 
             amountToRepay += orderSettlementDetails.amount;
-        }
-
-        // effects
-        for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
-            bytes32 orderID;
-            assembly {
-                orderID := mload(add(orderIDs, add(0x20, pos)))
-            }
-
-            if (orderStatuses[orderID] != OrderStatus.UNFILLED) {
-                emit OrderAlreadySettled(orderID);
-                continue;
-            }
 
             orderStatuses[orderID] = OrderStatus.FILLED;
             emit OrderSettled(orderID);
@@ -458,7 +458,7 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         emit OrderRefunded(orderID);
     }
 
-    function _permitTransferFrom(uint256 amount, uint256 deadline, uint256 orderNonce, bytes calldata signature)
+    function _permitTransferFrom(uint256 amount, uint256 deadline, uint32 orderNonce, bytes calldata signature)
         internal
     {
         PERMIT2.permitTransferFrom(
@@ -489,6 +489,26 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         require(orderFill.filler != address(0), "FastTransferGateway: order not filled");
 
         return orderFill;
+    }
+
+    function _checkForDuplicateOrders(bytes memory orderIDs) internal pure {
+        for (uint256 pos = 0; pos < orderIDs.length; pos += 32) {
+            bytes32 orderID;
+            assembly {
+                orderID := mload(add(orderIDs, add(0x20, pos)))
+            }
+
+            for (uint256 pos2 = pos + 32; pos2 < orderIDs.length; pos2 += 32) {
+                bytes32 orderID2;
+                assembly {
+                    orderID2 := mload(add(orderIDs, add(0x20, pos2)))
+                }
+
+                if (orderID2 == orderID) {
+                    revert("FastTransferGateway: duplicate order");
+                }
+            }
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

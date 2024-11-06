@@ -12,6 +12,7 @@ import {IPermit2} from "../src/interfaces/IPermit2.sol";
 import {OnchainCrossChainOrder, GaslessCrossChainOrder} from "../src/erc7683/ERC7683.sol";
 import {GoFastERC7683, OrderData} from "../src/GoFastERC7683.sol";
 import {OrderEncoder} from "../src/libraries/OrderEncoder.sol";
+import {GoFastCaller} from "../src/GoFastCaller.sol";
 
 interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
@@ -55,20 +56,25 @@ contract ERC7683Test is Test {
         solver = address(2);
         mailbox = address(0x979Ca5202784112f4738403dBec5D0F3B9daabB9);
 
+        GoFastCaller goFastCaller = new GoFastCaller(address(this));
+
         FastTransferGateway gatewayImpl = new FastTransferGateway();
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(
             address(gatewayImpl),
             abi.encodeWithSignature(
-                "initialize(uint32,address,address,address,address,address)",
+                "initialize(uint32,address,address,address,address,address,address)",
                 1,
                 address(this),
                 address(usdc),
                 mailbox,
                 0x3d0BE14dFbB1Eb736303260c1724B6ea270c8Dc4,
-                address(permit2)
+                address(permit2),
+                address(goFastCaller)
             )
         );
         gateway = FastTransferGateway(address(gatewayProxy));
+
+        goFastCaller.setGateway(address(gateway));
 
         GoFastERC7683 goFastERC7683Impl = new GoFastERC7683();
         ERC1967Proxy goFastERC7683Proxy = new ERC1967Proxy(
@@ -103,7 +109,7 @@ contract ERC7683Test is Test {
                     amountOut, // amountOut
                     1, // sourceDomain
                     2, // destinationDomain
-                    block.timestamp + 1 days, // timeoutTimestamp
+                    uint64(block.timestamp + 1 days), // timeoutTimestamp
                     bytes("") // data
                 )
             )
@@ -166,7 +172,7 @@ contract ERC7683Test is Test {
                     amountOut, // amountOut
                     1, // sourceDomain
                     2, // destinationDomain
-                    block.timestamp + 1 days, // timeoutTimestamp
+                    uint64(block.timestamp + 1 days), // timeoutTimestamp
                     bytes("") // data
                 )
             )
@@ -209,7 +215,7 @@ contract ERC7683Test is Test {
             nonce: 1,
             sourceDomain: sourceDomain,
             destinationDomain: 1,
-            timeoutTimestamp: block.timestamp + 1 days,
+            timeoutTimestamp: uint64(block.timestamp + 1 days),
             data: bytes("")
         });
 

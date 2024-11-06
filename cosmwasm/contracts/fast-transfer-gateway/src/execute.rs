@@ -61,6 +61,10 @@ pub fn fill_order(
 
     let recipient_address = bech32_encode(&config.address_prefix, &order.recipient)?;
 
+    if recipient_address == config.mailbox_addr {
+        return Err(ContractError::OrderRecipientCannotBeMailbox);
+    }
+
     let msg: CosmosMsg = match order.data {
         Some(data) => WasmMsg::Execute {
             contract_addr: recipient_address.clone().to_string(),
@@ -94,6 +98,10 @@ pub fn initiate_settlement(
         let order_fill = state::order_fills().by_order_id(deps.as_ref(), order_id.clone())?;
         if order_fill.filler != info.sender {
             return Err(ContractError::Unauthorized);
+        }
+
+        if fills_to_settle.contains(&order_fill) {
+            return Err(ContractError::DuplicateOrder);
         }
 
         fills_to_settle.push(order_fill);
@@ -145,6 +153,7 @@ pub fn initiate_timeout(
     for order in &orders {
         assert_order_is_expired(&env, order)?;
         assert_order_not_filled(deps.as_ref(), order.id())?;
+        assert_local_domain(deps.as_ref(), order.destination_domain)?;
     }
 
     let order_ids = orders
