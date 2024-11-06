@@ -16,7 +16,8 @@ import {OrderEncoder} from "./libraries/OrderEncoder.sol";
 
 import {IPermit2} from "./interfaces/IPermit2.sol";
 import {IMailbox} from "./interfaces/hyperlane/IMailbox.sol";
-import {GoFastCaller} from "./GoFastMulticall.sol";
+import {GoFastCaller} from "./GoFastCaller.sol";
+
 // Structure that contains the order details required to settle or refund an order
 
 struct SettlementDetails {

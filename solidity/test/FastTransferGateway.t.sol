@@ -11,7 +11,7 @@ import {TypeCasts} from "../src/libraries/TypeCasts.sol";
 import {OrderEncoder} from "../src/libraries/OrderEncoder.sol";
 import {IPermit2} from "../src/interfaces/IPermit2.sol";
 import {IMailbox} from "../src/interfaces/hyperlane/IMailbox.sol";
-import {GoFastCaller} from "../src/GoFastMulticall.sol";
+import {GoFastCaller} from "../src/GoFastCaller.sol";
 
 interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
@@ -55,7 +55,7 @@ contract FastTransferGatewayTest is Test {
         solver = address(2);
         mailbox = address(0x979Ca5202784112f4738403dBec5D0F3B9daabB9);
 
-        GoFastCaller _goFastCaller = new GoFastCaller();
+        GoFastCaller _goFastCaller = new GoFastCaller(address(this));
         goFastCaller = address(_goFastCaller);
         FastTransferGateway gatewayImpl = new FastTransferGateway();
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(
@@ -72,6 +72,8 @@ contract FastTransferGatewayTest is Test {
             )
         );
         gateway = FastTransferGateway(address(gatewayProxy));
+
+        _goFastCaller.setGateway(address(gateway));
     }
 
     function test_submitAndSettle() public {
