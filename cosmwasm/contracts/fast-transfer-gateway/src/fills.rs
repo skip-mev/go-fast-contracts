@@ -10,6 +10,7 @@ pub struct FillIndexes<'a> {
     pub filler: MultiIndex<'a, Addr, OrderFill, Vec<u8>>,
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl<'a> IndexList<OrderFill> for FillIndexes<'a> {
     fn get_indexes(
         &'_ self,
