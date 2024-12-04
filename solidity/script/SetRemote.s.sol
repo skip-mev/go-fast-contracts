@@ -11,8 +11,8 @@ contract DeployScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        uint32 remoteDomain = 42161;
-        bytes32 remoteContract = TypeCasts.addressToBytes32(0x83eFe03da48cF12a258c5bb210097E8b0aB2F61F);
+        uint32 remoteDomain = 875;
+        bytes32 remoteContract = hex"000000000000000000000000F7ceC3d387384bB6cE5792dAb161a65cFaCf8aB4";
 
         FastTransferGateway gateway = FastTransferGateway(0x80a428AEd33FeC3867850c75Ad8b6bB0Ec1270cA);
 
