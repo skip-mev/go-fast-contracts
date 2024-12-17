@@ -166,6 +166,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         uint64 timeoutTimestamp,
         bytes calldata data
     ) public returns (bytes32) {
+        require(timeoutTimestamp > block.timestamp, "FastTransferGateway: timeout timestamp must be in the future");
+
         FastTransferOrder memory order = FastTransferOrder(
             sender, recipient, amountIn, amountOut, nonce, localDomain, destinationDomain, timeoutTimestamp, data
         );
@@ -209,6 +211,8 @@ contract FastTransferGateway is Initializable, UUPSUpgradeable, OwnableUpgradeab
         bytes calldata data,
         bytes calldata signature
     ) public returns (bytes32) {
+        require(timeoutTimestamp > block.timestamp, "FastTransferGateway: timeout timestamp must be in the future");
+
         FastTransferOrder memory order = FastTransferOrder(
             sender, recipient, amountIn, amountOut, nonce, localDomain, destinationDomain, timeoutTimestamp, data
         );
