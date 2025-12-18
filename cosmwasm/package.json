@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@tsconfig/recommended": "^1.0.6",
+    "@tsconfig/recommended": "^1.0.13",
     "@types/node": "^20.12.11",
     "dotenv": "^16.4.5"
   },

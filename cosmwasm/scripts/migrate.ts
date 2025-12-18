@@ -5,12 +5,12 @@ import { GasPrice } from "@cosmjs/stargate";
 import { fromBech32 } from "@cosmjs/encoding";
 import { instantiateContract, migrateContract, storeContract } from "./lib";
 
-const GAS_PRICE = GasPrice.fromString("0.025uosmo");
+const GAS_PRICE = GasPrice.fromString("0.1uosmo");
 const CHAIN_PREFIX = "osmo";
 const RPC_URL = "https://osmosis-rpc.polkachu.com";
 
 const CONTRACT_ADDRESS =
-  "osmo1cnze5c4y7jw69ghzczsnu9v9qz3xuvevw5ayr2g0pa3ayafumlusej3pf5";
+  "osmo1vy34lpt5zlj797w7zqdta3qfq834kapx88qtgudy7jgljztj567s73ny82";
 
 async function main() {
   const DEPLOYER_MNEMONIC = process.env.DEPLOYER_MNEMONIC;
