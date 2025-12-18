@@ -92,6 +92,10 @@ pub fn initiate_settlement(
 ) -> ContractResponse {
     let config = CONFIG.load(deps.storage)?;
 
+    if repayment_address.len() != 32 {
+        return Err(ContractError::InvalidRepaymentAddress);
+    }
+
     let mut fills_to_settle = Vec::new();
 
     for order_id in &order_ids {
