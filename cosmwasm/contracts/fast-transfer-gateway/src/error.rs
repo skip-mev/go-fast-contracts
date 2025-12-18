@@ -50,6 +50,9 @@ pub enum ContractError {
 
     #[error("Duplicate order")]
     DuplicateOrder,
+
+    #[error("Invalid repayment address")]
+    InvalidRepaymentAddress,
 }
 
 pub type ContractResult<T> = Result<T, ContractError>;
